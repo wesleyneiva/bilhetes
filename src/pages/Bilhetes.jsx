@@ -1,0 +1,190 @@
+import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabase'
+import dayjs from 'dayjs'
+import { motion } from 'framer-motion'
+import { CheckCircle, Loader, Archive } from 'lucide-react'
+
+const STATUS = ['aberto', 'em andamento', 'fechado']
+const TIPO_CORES = {
+  'software': 'bg-blue-400',
+  'hardware': 'bg-yellow-400',
+  'ajuda/duvida': 'bg-gray-400',
+}
+
+const STATUS_CORES = {
+  'aberto': '#22c55e',
+  'em andamento': '#f59e0b',
+  'fechado': '#3b82f6',
+}
+
+const STATUS_ICONS = {
+  'aberto': <CheckCircle className="w-5 h-5 mr-2" color={STATUS_CORES['aberto']} />,
+  'em andamento': <Loader className="w-5 h-5 mr-2" color={STATUS_CORES['em andamento']} />,
+  'fechado': <Archive className="w-5 h-5 mr-2" color={STATUS_CORES['fechado']} />,
+}
+
+const Bilhetes = () => {
+  const [bilhetes, setBilhetes] = useState([])
+  const [filtro, setFiltro] = useState({ titulo: '', tipo: '', status: '' })
+  const [editingDescricao, setEditingDescricao] = useState({}) // { id: string -> descricao }
+
+  useEffect(() => {
+    buscarBilhetes()
+  }, [])
+
+  const buscarBilhetes = async () => {
+    const { data } = await supabase.from('bilhetes').select('*')
+    setBilhetes(data || [])
+  }
+
+  const handleFiltro = (e) => {
+    const { name, value } = e.target
+    setFiltro(prev => ({ ...prev, [name]: value }))
+  }
+
+  const filtrar = (bilhete) => {
+    const tituloOK = bilhete.titulo.toLowerCase().includes(filtro.titulo.toLowerCase())
+    const tipoOK = filtro.tipo ? bilhete.tipo === filtro.tipo : true
+    const statusOK = filtro.status ? bilhete.status === filtro.status : true
+    return tituloOK && tipoOK && statusOK
+  }
+
+  const atualizarStatus = async (id, status) => {
+    await supabase.from('bilhetes').update({ status }).eq('id', id)
+    buscarBilhetes()
+  }
+
+  const salvarDescricao = async (id, descricao) => {
+    await supabase.from('bilhetes').update({ descricao }).eq('id', id)
+    setEditingDescricao(prev => ({ ...prev, [id]: undefined }))
+    buscarBilhetes()
+  }
+
+  const cancelarEdicao = (id) => {
+    setEditingDescricao(prev => ({ ...prev, [id]: undefined }))
+  }
+
+  const Card = ({ b }) => (
+    <motion.div
+      layout
+      className="bg-white rounded-xl shadow-md p-4 mb-4 relative flex flex-col gap-2 border-l-[6px]"
+      style={{ borderColor: STATUS_CORES[b.status] }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="flex justify-between items-center">
+        <span className={`text-xs px-2 py-1 rounded ${TIPO_CORES[b.tipo]} text-white`}>
+          {b.tipo}
+        </span>
+        <span className="text-sm text-gray-500">{dayjs(b.created_at).format('DD/MM/YYYY')}</span>
+      </div>
+      <h3 className="font-bold text-lg text-blue-800">{b.titulo}</h3>
+
+      {editingDescricao[b.id] !== undefined ? (
+        <div>
+          <textarea
+            className="w-full border rounded-md p-2 text-sm"
+            value={editingDescricao[b.id]}
+            onChange={(e) => setEditingDescricao(prev => ({ ...prev, [b.id]: e.target.value }))}
+          />
+          <div className="flex gap-2 mt-2">
+            <button
+              className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
+              onClick={() => salvarDescricao(b.id, editingDescricao[b.id])}
+            >
+              OK
+            </button>
+            <button
+              className="px-3 py-1 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400"
+              onClick={() => cancelarEdicao(b.id)}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <p
+          className="text-gray-600 cursor-pointer"
+          onClick={() => setEditingDescricao(prev => ({ ...prev, [b.id]: b.descricao || '' }))}
+        >
+          {b.descricao || <span className="italic text-gray-400">Sem descrição</span>}
+        </p>
+      )}
+
+      <div className="flex gap-2 mt-2 flex-wrap">
+        {STATUS.map(opt => (
+          <motion.button
+            key={opt}
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05 }}
+            type="button"
+            style={{
+              borderColor: STATUS_CORES[b.status],
+              color: b.status === opt ? STATUS_CORES[b.status] : '#6b7280',
+              cursor: 'pointer'
+            }}
+            className={`px-3 py-1 rounded-md text-sm border transition-all ${
+              b.status === opt
+                ? 'font-semibold'
+                : 'hover:brightness-110'
+            }`}
+            onClick={() => atualizarStatus(b.id, opt)}
+          >
+            {opt}
+          </motion.button>
+        ))}
+      </div>
+
+      <div className="text-right text-xs text-gray-400 mt-1">Responsável: {b.responsavel}</div>
+    </motion.div>
+  )
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Bilhetes</h1>
+
+      {/* Filtros */}
+      <div className="flex gap-4 mb-6 flex-wrap">
+        <input
+          type="text"
+          name="titulo"
+          placeholder="Filtrar por título"
+          className="border p-2 rounded w-full sm:w-1/3"
+          onChange={handleFiltro}
+        />
+        <select name="tipo" className="border p-2 rounded" onChange={handleFiltro}>
+          <option value="">Tipo</option>
+          <option value="software">Software</option>
+          <option value="hardware">Hardware</option>
+          <option value="ajuda/duvida">Ajuda/Dúvida</option>
+        </select>
+        <select name="status" className="border p-2 rounded" onChange={handleFiltro}>
+          <option value="">Status</option>
+          <option value="aberto">Aberto</option>
+          <option value="em andamento">Em andamento</option>
+          <option value="fechado">Fechado</option>
+        </select>
+      </div>
+
+      {/* Kanban */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {STATUS.map(st => (
+          <div key={st} className="bg-gray-100 p-4 rounded-lg shadow-inner min-h-[200px]">
+            <h2
+              className="text-lg font-semibold capitalize mb-4 flex items-center"
+              style={{ color: STATUS_CORES[st] }}
+            >
+              {STATUS_ICONS[st]} {st}
+            </h2>
+            {bilhetes.filter(b => b.status === st).filter(filtrar).map(b => (
+              <Card key={b.id} b={b} />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export default Bilhetes
