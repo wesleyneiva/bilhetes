@@ -29,15 +29,15 @@ const NovoBilhete = () => {
     e.preventDefault()
     setLoading(true)
 
-    // Pega o horário atual com o offset correto do Brasil (UTC-3)
+    
   const now = new Date();
   const offset = -3 * 60; // -3 horas em minutos
   const localDate = new Date(now.getTime() + offset * 60 * 1000);
   
-    // Formato que o Supabase espera para timestamp with time zone
+    
     const bilheteComHorario = {
       ...form,
-      criadoem: localDate.toISOString() // Usando o JavaScript Date nativo
+      criadoem: localDate.toISOString() 
     }
   
     const { data, error } = await supabase.from('bilhetes').insert([bilheteComHorario])
