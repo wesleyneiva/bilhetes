@@ -1,8 +1,14 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import { motion } from 'framer-motion'
 import { CheckCircle, Loader, Archive } from 'lucide-react'
+
+// Configura os plugins do dayjs
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 const STATUS = ['aberto', 'em andamento', 'fechado']
 const TIPO_CORES = {
@@ -34,8 +40,14 @@ const Bilhetes = () => {
   }, [])
 
   const buscarBilhetes = async () => {
-    const { data } = await supabase.from('bilhetes').select('*')
-    setBilhetes(data || [])
+    const { data } = await supabase
+      .from('bilhetes')
+      .select('*')
+      .order('criadoem', { ascending: false })
+    
+    if (data) {
+      setBilhetes(data)
+    }
   }
 
   const handleFiltro = (e) => {
@@ -93,7 +105,9 @@ const Bilhetes = () => {
           <span className={`text-xs px-2 py-1 rounded ${TIPO_CORES[b.tipo]} text-white`}>
             {b.tipo}
           </span>
-          <span className="text-sm text-gray-500">{dayjs(b.created_at).format('DD/MM/YYYY')}</span>
+          <span className="text-sm text-gray-500">
+            {dayjs(b.criadoem).utc().format('DD/MM/YYYY HH:mm')}
+          </span>
         </div>
         <h3 className="font-bold text-lg text-blue-800">{b.titulo}</h3>
 
@@ -193,9 +207,11 @@ const Bilhetes = () => {
             <h2 className="text-xl font-semibold flex items-center gap-2 mb-4">
               {STATUS_ICONS[status]} {status.charAt(0).toUpperCase() + status.slice(1)}
             </h2>
-            {bilhetes.filter(b => b.status === status && filtrar(b)).map(b => (
-              <Card key={b.id} b={b} />
-            ))}
+            {bilhetes
+              .filter(b => b.status === status && filtrar(b))
+              .map(b => (
+                <Card key={b.id} b={b} />
+              ))}
           </div>
         ))}
       </div>

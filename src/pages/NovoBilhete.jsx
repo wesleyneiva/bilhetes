@@ -2,6 +2,13 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { motion } from 'framer-motion'
 import { PlusCircle } from 'lucide-react'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+
+// Ativa os plugins do dayjs
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 const NovoBilhete = () => {
   const [form, setForm] = useState({
@@ -11,7 +18,7 @@ const NovoBilhete = () => {
     tipo: 'software',
     status: 'aberto',
   })
-  
+
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
@@ -20,19 +27,36 @@ const NovoBilhete = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true) // Ativar o estado de loading
-    
-    // Inserção do bilhete no banco
-    const { data, error } = await supabase.from('bilhetes').insert([form])
-    
-    setLoading(false) // Desativar o estado de loading
+    setLoading(true)
 
+    // Pega o horário atual com o offset correto do Brasil (UTC-3)
+  const now = new Date();
+  const offset = -3 * 60; // -3 horas em minutos
+  const localDate = new Date(now.getTime() + offset * 60 * 1000);
+  
+    // Formato que o Supabase espera para timestamp with time zone
+    const bilheteComHorario = {
+      ...form,
+      criadoem: localDate.toISOString() // Usando o JavaScript Date nativo
+    }
+  
+    const { data, error } = await supabase.from('bilhetes').insert([bilheteComHorario])
+    
+    setLoading(false)
+  
     if (error) {
-      setErrorMessage(error.message) // Se houver erro, mostra a mensagem de erro
+      setErrorMessage(error.message)
       console.error("Erro ao salvar bilhete:", error)
     } else {
       console.log("Bilhete inserido:", data)
-      setShowModal(true)  // Exibe o modal de sucesso após a inserção
+      setShowModal(true)
+      setForm({
+        titulo: '',
+        descricao: '',
+        responsavel: 'Erik',
+        tipo: 'software',
+        status: 'aberto',
+      }) // Reset do formulário
     }
   }
 
@@ -60,7 +84,6 @@ const NovoBilhete = () => {
 
   return (
     <div className="relative">
-      {/* Modal de sucesso */}
       {showModal && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -79,7 +102,7 @@ const NovoBilhete = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => setShowModal(false)}  // Fecha o modal
+              onClick={() => setShowModal(false)}
               className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md"
             >
               OK
@@ -88,7 +111,6 @@ const NovoBilhete = () => {
         </motion.div>
       )}
 
-      {/* Modal de erro */}
       {errorMessage && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -107,7 +129,7 @@ const NovoBilhete = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => setErrorMessage(null)}  // Fecha o modal de erro
+              onClick={() => setErrorMessage(null)}
               className="mt-4 bg-red-700 text-white py-2 px-4 rounded-md"
             >
               Fechar
@@ -116,7 +138,6 @@ const NovoBilhete = () => {
         </motion.div>
       )}
 
-      {/* Formulário */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
