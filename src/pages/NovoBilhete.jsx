@@ -123,8 +123,8 @@ const NovoBilhete = () => {
         transition={{ duration: 0.5, ease: 'easeOut' }}
         className="max-w-xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-lg"
       >
-        <h1 className="flex items-center justify-center gap-2 text-3xl font-bold text-blue-700 mb-6">
-          <PlusCircle className="w-8 h-8 text-blue-700" />
+        <h1 className="flex items-center justify-center gap-2 text-3xl font-bold text-black mb-6">
+          <PlusCircle className="w-5 h-8 text-black" />
           Novo Bilhete
         </h1>
         <form onSubmit={handleSubmit} className="space-y-5">
