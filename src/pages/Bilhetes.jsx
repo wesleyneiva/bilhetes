@@ -6,7 +6,6 @@ import timezone from 'dayjs/plugin/timezone'
 import { motion } from 'framer-motion'
 import { CheckCircle, Loader, Archive } from 'lucide-react'
 
-// Configura os plugins do dayjs
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
@@ -31,7 +30,7 @@ const STATUS_ICONS = {
 
 const Bilhetes = () => {
   const [bilhetes, setBilhetes] = useState([])
-  const [filtro, setFiltro] = useState({ titulo: '', tipo: '', status: '' })
+  const [filtro, setFiltro] = useState({ titulo: '', tipo: '', status: '', dataInicio: '', dataFim: '' })
   const [editingDescricao, setEditingDescricao] = useState({})
   const [descricaoTemp, setDescricaoTemp] = useState({})
 
@@ -59,7 +58,12 @@ const Bilhetes = () => {
     const tituloOK = bilhete.titulo.toLowerCase().includes(filtro.titulo.toLowerCase())
     const tipoOK = filtro.tipo ? bilhete.tipo === filtro.tipo : true
     const statusOK = filtro.status ? bilhete.status === filtro.status : true
-    return tituloOK && tipoOK && statusOK
+
+    const criadoem = dayjs(bilhete.criadoem)
+    const dataInicioOK = filtro.dataInicio ? criadoem.isAfter(dayjs(filtro.dataInicio).startOf('day').subtract(1, 'second')) : true
+    const dataFimOK = filtro.dataFim ? criadoem.isBefore(dayjs(filtro.dataFim).endOf('day').add(1, 'second')) : true
+
+    return tituloOK && tipoOK && statusOK && dataInicioOK && dataFimOK
   }
 
   const atualizarStatus = async (id, status) => {
@@ -199,6 +203,18 @@ const Bilhetes = () => {
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
+        <input
+          type="date"
+          name="dataInicio"
+          className="border p-2 rounded"
+          onChange={handleFiltro}
+        />
+        <input
+          type="date"
+          name="dataFim"
+          className="border p-2 rounded"
+          onChange={handleFiltro}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
