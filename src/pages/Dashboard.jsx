@@ -5,6 +5,7 @@ import { Bar, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend } from 'chart.js';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import { motion } from 'framer-motion';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
@@ -84,12 +85,19 @@ const Dashboard = () => {
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {porTipo.map(item => (
-          <div key={item.tipo} className="p-4 border rounded-lg shadow bg-white">
+        {porTipo.map((item, index) => (
+          <motion.div
+            key={item.tipo}
+            className="p-4 border rounded-lg shadow bg-white cursor-default"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1, duration: 0.4, ease: 'easeOut' }}
+            whileHover={{ scale: 1.05, boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }}
+          >
             <h3 className="text-lg font-semibold capitalize">{item.tipo}</h3>
             <p className="text-3xl font-bold">{item.count}</p>
             <p className="text-sm text-gray-500">{item.porcentagem}% do total</p>
-          </div>
+          </motion.div>
         ))}
       </div>
 
@@ -182,10 +190,10 @@ const Dashboard = () => {
       </div>
 
       <div className="flex gap-4 mt-6">
-        <button onClick={handleExportCSV} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+        <button onClick={handleExportCSV} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 cursor-pointer">
           Exportar CSV
         </button>
-        <button onClick={handleExportExcel} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+        <button onClick={handleExportExcel} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 cursor-pointer">
           Exportar Excel
         </button>
       </div>
