@@ -23,11 +23,17 @@ const Navbar = () => {
         {navItem('/bilhetes', 'Bilhetes', FiFileText)}
         {navItem('/dashboard', 'Dashboard', FiBarChart2)}
       </div>
-      <img
-        src="./logo.png"
-        alt="Logo"
-        className="w-60 h-10 rounded-full object-cover"
-      />
+      <a
+        href="https://www.aabbportoalegre.com.br/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img
+          src="./logo.png"
+          alt="Logo"
+          className="w-60 h-10 rounded-full object-cover"
+        />
+      </a>
     </nav>
   );
 };
