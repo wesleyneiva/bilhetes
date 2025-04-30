@@ -174,17 +174,47 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="mb-6 bg-gray-100 p-4 rounded-lg">
-        <h2 className="text-lg font-semibold mb-2">Relatório</h2>
-        <p>Total de bilhetes registrados: <strong>{total}</strong></p>
-        <ul className="list-disc list-inside">
+      <div className="mb-6 bg-gray-50 p-4 rounded-xl shadow">
+        <h2 className="text-lg font-semibold mb-2 text-gray-700">Relatório</h2>
+        <p className="mb-2">Total de bilhetes registrados: <strong>{total}</strong></p>
+        <ul className="list-disc list-inside text-gray-700">
           {porTipo.map(item => (
             <li key={item.tipo}>
               <strong>{item.tipo}</strong>: {item.count} bilhete(s) ({item.porcentagem}%)
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-sm text-gray-600">
+
+        <div className="mt-4 overflow-x-auto">
+          <table className="min-w-full text-sm border rounded-lg overflow-hidden shadow-sm mt-2">
+            <thead className="bg-blue-300 text-gray-700">
+              <tr>
+                <th className="px-3 py-2 border text-left">Tipo</th>
+                {['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'].map(mes => (
+                  <th key={mes} className="px-3 py-2 border text-center">{mes}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {bilhetesPorMesPorTipo().map(({ tipo, dados }, rowIndex) => (
+                <motion.tr
+                  key={tipo}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: rowIndex * 0.05 }}
+                  className="hover:bg-blue-50 transition duration-200"
+                >
+                  <td className="px-3 py-2 border font-medium text-gray-700">{tipo}</td>
+                  {dados.map((qtd, colIndex) => (
+                    <td key={colIndex} className="px-3 py-2 border text-center text-gray-600">{qtd}</td>
+                  ))}
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="mt-4 text-sm text-gray-500">
           Dados atualizados em: <strong>{dayjs().format('DD/MM/YYYY HH:mm')}</strong>
         </p>
       </div>
