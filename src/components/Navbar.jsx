@@ -8,7 +8,7 @@ const Navbar = () => {
     <Link
       to={to}
       className={`flex items-center gap-2 px-4 py-2 rounded-md text-white transition ${
-        pathname === to ? 'bg-blue-400' : 'hover:bg-blue-500'
+        pathname === to ? 'bg-blue-400' : 'hover:bg-blue-400'
       }`}
     >
       <Icon size={18} />

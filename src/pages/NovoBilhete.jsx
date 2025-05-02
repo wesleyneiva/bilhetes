@@ -175,7 +175,7 @@ const NovoBilhete = () => {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-medium transition cursor-pointer"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-md font-medium transition cursor-pointer"
           >
             {loading ? 'Carregando...' : 'Enviar'}
           </motion.button>
