@@ -19,6 +19,7 @@ const coresTipos = {
 
 const Dashboard = () => {
   const [bilhetes, setBilhetes] = useState([]);
+  const [anoSelecionado, setAnoSelecionado] = useState(new Date().getFullYear());
 
   useEffect(() => {
     fetchBilhetes();
@@ -29,10 +30,14 @@ const Dashboard = () => {
     setBilhetes(data || []);
   };
 
-  const total = bilhetes.length;
+  const bilhetesFiltrados = bilhetes.filter(b =>
+    dayjs(b.criadoem).year() === Number(anoSelecionado)
+  );
+
+  const total = bilhetesFiltrados.length;
 
   const porTipo = tipos.map(tipo => {
-    const count = bilhetes.filter(b => b.tipo === tipo).length;
+    const count = bilhetesFiltrados.filter(b => b.tipo === tipo).length;
     return {
       tipo,
       count,
@@ -46,7 +51,7 @@ const Dashboard = () => {
       dados: Array(12).fill(0),
     }));
 
-    bilhetes.forEach(b => {
+    bilhetesFiltrados.forEach(b => {
       const mes = dayjs(b.criadoem).month();
       const tipoIndex = tipos.indexOf(b.tipo);
       if (tipoIndex !== -1) {
@@ -58,17 +63,17 @@ const Dashboard = () => {
   };
 
   const handleExportCSV = () => {
-    const csv = Papa.unparse(bilhetes);
+    const csv = Papa.unparse(bilhetesFiltrados);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    download(url, 'bilhetes.csv');
+    download(url, `bilhetes_${anoSelecionado}.csv`);
   };
 
   const handleExportExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(bilhetes);
+    const worksheet = XLSX.utils.json_to_sheet(bilhetesFiltrados);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Bilhetes');
-    XLSX.writeFile(workbook, 'bilhetes.xlsx');
+    XLSX.writeFile(workbook, `bilhetes_${anoSelecionado}.xlsx`);
   };
 
   const download = (url, filename) => {
@@ -80,9 +85,26 @@ const Dashboard = () => {
     document.body.removeChild(link);
   };
 
+  const anosDisponiveis = Array.from(new Set(bilhetes.map(b => dayjs(b.criadoem).year()))).sort();
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+
+      <div className="mb-4">
+        <label className="mr-2 font-medium">Selecionar ano:</label>
+        <select
+          value={anoSelecionado}
+          onChange={e => setAnoSelecionado(Number(e.target.value))}
+          className="border rounded px-3 py-1"
+        >
+          {anosDisponiveis.map(ano => (
+            <option key={ano} value={ano}>
+              {ano}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {porTipo.map((item, index) => (
@@ -175,7 +197,7 @@ const Dashboard = () => {
       </div>
 
       <div className="mb-6 bg-gray-50 p-4 rounded-xl shadow">
-        <h2 className="text-lg font-semibold mb-2 text-gray-700">Relatório</h2>
+        <h2 className="text-lg font-semibold mb-2 text-gray-700">Relatório {anoSelecionado}</h2>
         <p className="mb-2">Total de bilhetes registrados: <strong>{total}</strong></p>
         <ul className="list-disc list-inside text-gray-700">
           {porTipo.map(item => (
