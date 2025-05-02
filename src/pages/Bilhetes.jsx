@@ -54,6 +54,10 @@ const Bilhetes = () => {
     setFiltro(prev => ({ ...prev, [name]: value }))
   }
 
+  const limparFiltros = () => {
+    setFiltro({ titulo: '', tipo: '', status: '', dataInicio: '', dataFim: '' })
+  }
+
   const filtrar = (bilhete) => {
     const tituloOK = bilhete.titulo.toLowerCase().includes(filtro.titulo.toLowerCase())
     const tipoOK = filtro.tipo ? bilhete.tipo === filtro.tipo : true
@@ -183,21 +187,22 @@ const Bilhetes = () => {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Bilhetes</h1>
 
-      <div className="flex gap-4 mb-6 flex-wrap">
+      <div className="flex gap-4 mb-6 flex-wrap items-end">
         <input
           type="text"
           name="titulo"
           placeholder="Filtrar por título"
           className="border p-2 rounded w-full sm:w-1/3"
           onChange={handleFiltro}
+          value={filtro.titulo}
         />
-        <select name="tipo" className="border p-2 rounded" onChange={handleFiltro}>
+        <select name="tipo" className="border p-2 rounded" onChange={handleFiltro} value={filtro.tipo}>
           <option value="">Tipo</option>
           <option value="software">Software</option>
           <option value="hardware">Hardware</option>
           <option value="ajuda/duvida">Ajuda/Dúvida</option>
         </select>
-        <select name="status" className="border p-2 rounded" onChange={handleFiltro}>
+        <select name="status" className="border p-2 rounded" onChange={handleFiltro} value={filtro.status}>
           <option value="">Status</option>
           {STATUS.map(s => (
             <option key={s} value={s}>{s}</option>
@@ -208,13 +213,24 @@ const Bilhetes = () => {
           name="dataInicio"
           className="border p-2 rounded"
           onChange={handleFiltro}
+          value={filtro.dataInicio}
         />
         <input
           type="date"
           name="dataFim"
           className="border p-2 rounded"
           onChange={handleFiltro}
+          value={filtro.dataFim}
         />
+
+        <motion.button
+          onClick={limparFiltros}
+          whileHover={{ scale: 1.08 }}
+          transition={{ type: 'spring', stiffness: 300 }}
+          className="px-4 py-2 bg-red-500 text-white rounded shadow hover:bg-red-600 cursor-pointer"
+        >
+          Limpar filtros
+        </motion.button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
