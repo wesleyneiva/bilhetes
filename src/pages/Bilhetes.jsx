@@ -4,8 +4,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { motion } from 'framer-motion'
-import { CheckCircle, Loader, Archive, Upload } from 'lucide-react'
-import { v4 as uuidv4 } from 'uuid'
+import { CheckCircle, Loader, Archive, Upload, Image as ImageIcon } from 'lucide-react'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -37,9 +36,11 @@ const Bilhetes = () => {
   const [filtro, setFiltro] = useState({ titulo: '', tipo: '', status: '', dataInicio: '', dataFim: '' })
   const [editingDescricao, setEditingDescricao] = useState({})
   const [descricaoTemp, setDescricaoTemp] = useState({})
+  const [imagens, setImagens] = useState({}) // { [bilheteId]: [array de URLs] }
 
   useEffect(() => {
     buscarBilhetes()
+    buscarImagens()
   }, [])
 
   const buscarBilhetes = async () => {
@@ -51,6 +52,36 @@ const Bilhetes = () => {
     if (data) {
       setBilhetes(data)
     }
+  }
+
+  const buscarImagens = async () => {
+    const { data: files, error } = await supabase
+      .storage
+      .from('bilhetes')
+      .list()
+
+    if (error) {
+      console.error('Erro ao buscar imagens:', error)
+      return
+    }
+
+    const novasImagens = {}
+
+    for (const file of files) {
+      const bilheteId = file.name.split('-')[0]
+      if (!novasImagens[bilheteId]) {
+        novasImagens[bilheteId] = []
+      }
+
+      const { data: { publicUrl } } = supabase
+        .storage
+        .from('bilhetes')
+        .getPublicUrl(file.name)
+
+      novasImagens[bilheteId].push(publicUrl)
+    }
+
+    setImagens(novasImagens)
   }
 
   const handleFiltro = (e) => {
@@ -100,15 +131,19 @@ const Bilhetes = () => {
     const { error } = await supabase.storage.from('bilhetes').upload(filename, file)
 
     if (!error) {
-      alert('Imagem enviada com sucesso!')
+      const { data: { publicUrl } } = supabase.storage.from('bilhetes').getPublicUrl(filename)
+      setImagens(prev => ({
+        ...prev,
+        [id]: [...(prev[id] || []), publicUrl]
+      }))
     } else {
-      alert('Erro ao enviar imagem.')
-      console.error(error)
+      console.error('Erro ao enviar imagem:', error)
     }
   }
 
   const Card = ({ b }) => {
     const textareaRef = useRef(null)
+    const fileInputRef = useRef(null)
 
     useEffect(() => {
       if (editingDescricao[b.id] && textareaRef.current) {
@@ -172,6 +207,29 @@ const Bilhetes = () => {
           </p>
         )}
 
+        {/* Seção de Imagens Anexadas */}
+        {imagens[b.id] && imagens[b.id].length > 0 && (
+          <div className="mt-2">
+            <div className="flex items-center text-sm font-medium text-gray-700 mb-1">
+              <ImageIcon className="w-4 h-4 mr-1" />
+              <span>Imagens anexadas:</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              {imagens[b.id].map((url, index) => (
+                <a
+                  key={index}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline break-all"
+                >
+                  Imagem {index + 1}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-2 mt-2 flex-wrap">
           {STATUS.map(opt => (
             <motion.button
@@ -202,9 +260,11 @@ const Bilhetes = () => {
               type="file"
               accept="image/*"
               className="hidden"
+              ref={fileInputRef}
               onChange={(e) => {
                 if (e.target.files[0]) {
                   uploadImagem(b.id, e.target.files[0])
+                  e.target.value = '' // Limpa o input para permitir novo upload
                 }
               }}
             />

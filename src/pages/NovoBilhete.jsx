@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom' // Alterado para useNavigate
 import { supabase } from '../lib/supabase'
 import { motion } from 'framer-motion'
 import { PlusCircle } from 'lucide-react'
@@ -11,6 +12,7 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 
 const NovoBilhete = () => {
+  const navigate = useNavigate() // Alterado para useNavigate
   const [form, setForm] = useState({
     titulo: '',
     descricao: '',
@@ -29,11 +31,9 @@ const NovoBilhete = () => {
     e.preventDefault()
     setLoading(true)
 
-    
-  const now = new Date();
-  const offset = -3 * 60; // -3 horas em minutos
-  const localDate = new Date(now.getTime() + offset * 60 * 1000);
-  
+    const now = new Date();
+    const offset = -3 * 60; // -3 horas em minutos
+    const localDate = new Date(now.getTime() + offset * 60 * 1000);
     
     const bilheteComHorario = {
       ...form,
@@ -56,7 +56,7 @@ const NovoBilhete = () => {
         responsavel: 'Erik',
         tipo: 'software',
         status: 'aberto',
-      }) // Reset do formulário
+      })
     }
   }
 
@@ -102,7 +102,10 @@ const NovoBilhete = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => setShowModal(false)}
+              onClick={() => {
+                setShowModal(false);
+                navigate('/bilhetes'); // Alterado para navigate
+              }}
               className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md"
             >
               OK
