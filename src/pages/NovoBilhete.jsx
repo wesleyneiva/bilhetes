@@ -169,7 +169,7 @@ const NovoBilhete = () => {
           </div>
           <div>
             <label className="font-semibold text-gray-700">Tipo:</label>
-            <ButtonGroup name="tipo" options={['software', 'hardware', 'ajuda/duvida']} />
+            <ButtonGroup name="tipo" options={['software', 'hardware', 'ajuda/duvida', 'suprimentos', 'busca de imagens', 'redes' ]} />
           </div>
           <motion.button
             whileHover={{ scale: 1.03 }}

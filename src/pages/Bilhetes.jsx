@@ -4,7 +4,8 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { motion } from 'framer-motion'
-import { CheckCircle, Loader, Archive } from 'lucide-react'
+import { CheckCircle, Loader, Archive, Upload } from 'lucide-react'
+import { v4 as uuidv4 } from 'uuid'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -14,6 +15,9 @@ const TIPO_CORES = {
   'software': 'bg-blue-400',
   'hardware': 'bg-yellow-400',
   'ajuda/duvida': 'bg-gray-400',
+  'suprimentos': 'bg-green-400',
+  'busca de imagens': 'bg-red-400',
+  'redes': 'bg-purple-600',
 }
 
 const STATUS_CORES = {
@@ -43,7 +47,7 @@ const Bilhetes = () => {
       .from('bilhetes')
       .select('*')
       .order('criadoem', { ascending: false })
-    
+
     if (data) {
       setBilhetes(data)
     }
@@ -89,6 +93,18 @@ const Bilhetes = () => {
       delete copy[id]
       return copy
     })
+  }
+
+  const uploadImagem = async (id, file) => {
+    const filename = `${id}-${Date.now()}-${file.name}`
+    const { error } = await supabase.storage.from('bilhetes').upload(filename, file)
+
+    if (!error) {
+      alert('Imagem enviada com sucesso!')
+    } else {
+      alert('Erro ao enviar imagem.')
+      console.error(error)
+    }
   }
 
   const Card = ({ b }) => {
@@ -178,6 +194,23 @@ const Bilhetes = () => {
           ))}
         </div>
 
+        <div className="flex items-center gap-2 mt-2">
+          <label className="flex items-center gap-1 cursor-pointer text-sm text-blue-600 hover:underline">
+            <Upload className="w-4 h-4" />
+            <span>Enviar imagem</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files[0]) {
+                  uploadImagem(b.id, e.target.files[0])
+                }
+              }}
+            />
+          </label>
+        </div>
+
         <div className="text-right text-xs text-gray-400 mt-1">Responsável: {b.responsavel}</div>
       </motion.div>
     )
@@ -201,6 +234,9 @@ const Bilhetes = () => {
           <option value="software">Software</option>
           <option value="hardware">Hardware</option>
           <option value="ajuda/duvida">Ajuda/Dúvida</option>
+          <option value="suprimentos">Suprimentos</option>
+          <option value="busca de imagens">Busca de Imagens</option>
+          <option value="redes">Redes</option>
         </select>
         <select name="status" className="border p-2 rounded" onChange={handleFiltro} value={filtro.status}>
           <option value="">Status</option>

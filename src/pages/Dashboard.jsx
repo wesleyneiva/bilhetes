@@ -9,12 +9,15 @@ import { motion } from 'framer-motion';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
-const tipos = ['software', 'hardware', 'ajuda/duvida'];
+const tipos = ['software', 'hardware', 'ajuda/duvida', 'suprimentos', 'busca de imagens', 'redes'];
 
 const coresTipos = {
   software: '#3b82f6',
   hardware: '#f59e0b',
-  'ajuda/duvida': '#10b981',
+  'ajuda/duvida': '#8b5cf6',
+  suprimentos: '#FFFF00', // vermelho
+  'busca de imagens': '#FF0000', // roxo
+  redes: '#E6E6FA', // rosa
 };
 
 const Dashboard = () => {
@@ -132,9 +135,9 @@ const Dashboard = () => {
               datasets: [{
                 label: 'Total',
                 data: porTipo.map(p => p.count),
-                backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6'],
+                backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#FFFF00', '#FF0000', '#E6E6FA'],
                 borderRadius: 8,
-                hoverBackgroundColor: ['#2563eb', '#d97706', '#7c3aed'],
+                hoverBackgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#FFFF00', '#FF0000', '#E6E6FA'],
                 barThickness: 40,
               }],
             }}
@@ -169,7 +172,7 @@ const Dashboard = () => {
                 data: dados,
                 borderColor: coresTipos[tipo],
                 backgroundColor: `${coresTipos[tipo]}33`,
-                fill: true,
+                fill: false,
                 tension: 0.3,
               })),
             }}
